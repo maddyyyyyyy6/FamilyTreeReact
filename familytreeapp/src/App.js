@@ -3,7 +3,7 @@ import TreeView from '@mui/lab/TreeView';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TreeItem from '@mui/lab/TreeItem';
-import Form from './components/Form';
+// import Form from './components/Form';
 import { useEffect, useRef, useState } from 'react';
 import ControlPointRoundedIcon from '@mui/icons-material/ControlPointRounded';
 import { styled } from '@mui/system';
@@ -11,20 +11,20 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
+// import TextField from '@mui/material/TextField';
 import { IconButton } from '@mui/material';
-import Box from '@mui/material/Box';
+// import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/joy/Button';
-import { data } from './dump.js'
+import { data, sujaramdata } from './dump.js'
 import Select from '@mui/joy/Select';
 import Option from '@mui/joy/Option';
 import Input from '@mui/joy/Input';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import HourglassBottomRoundedIcon from '@mui/icons-material/HourglassBottomRounded';
 //  for theme treeitem
-
+import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 const StyledTreeItem = styled(TreeItem)(({ theme }) => ({
   fontSize: 11,
   // Add your custom styles here
@@ -56,7 +56,7 @@ function App() {
   const [age, setAge] = useState(0)
   const [gender, setGender] = useState("none")
   const selectedNodeRef = useRef(null);
-  const [tree, setTree] = useState(data)
+  const [tree, setTree] = useState(sujaramdata)
   const inputRef = useRef(null);
   const [expanded, setExpanded] = useState([])
 
@@ -79,17 +79,17 @@ function App() {
   };
 
   // sync from localstorage 
-  const syncData = () => {
-    let dataString = localStorage.getItem("data")
-    let data = JSON.parse(dataString) || []
-    setTree(data)
+  // const syncData = () => {
+  //   let dataString = localStorage.getItem("data")
+  //   let data = JSON.parse(dataString) || []
+  //   setTree(data)
 
-  }
-  const updateData = () => {
-    let dataParse = tree
-    let dataString = JSON.stringify(dataParse)
-    localStorage.setItem("data", dataString)
-  }
+  // }
+  // const updateData = () => {
+  //   let dataParse = tree
+  //   let dataString = JSON.stringify(dataParse)
+  //   localStorage.setItem("data", dataString)
+  // }
 
 
 
@@ -99,7 +99,10 @@ function App() {
   }, [])
   const handleAddMember = () => {
     // Perform any necessary actions with the entered member name, such as updating the data object or making an API call
-    // console.log('New member:', memberName);
+    let newsMember = {
+      memberName, age, gender
+    }
+    // console.log('New member:', newsMember);
 
     // // Reset the member name and close the dialog box
     // setMemberName('');
@@ -113,6 +116,7 @@ function App() {
       gender: gender
     };
 
+    console.log(newMember)
     // Find the selected node in the data
     const findNode = (nodes) => {
       if (nodes.id === selectedNodeId) {
@@ -130,13 +134,33 @@ function App() {
 
     // Find and update the selected node in the data
     const selectedNodeId = selectedNodeRef.current.id;
-    findNode(data);
+    findNode(sujaramdata);
 
     // Reset the member name and close the dialog box
     setMemberName('');
     setOpen(false);
     // updateData()
   };
+
+  const removeMemberNode = () => {
+    const findNode = (nodes) => {
+      if (nodes.id === selectedNodeId) {
+        if (!Array.isArray(nodes.children)) {
+          nodes.children = [];
+        }
+        console.log(nodes.children)
+        return true;
+      }
+      if (Array.isArray(nodes.children)) {
+        return nodes.children.some(findNode);
+      }
+      return false;
+    };
+
+    // Find and update the selected node in the data
+    const selectedNodeId = selectedNodeRef.current.id;
+    findNode(sujaramdata);
+  }
 
   const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -150,8 +174,13 @@ function App() {
   console.log(tree)
   const renderTree = (nodes) => (
     <StyledTreeItem key={nodes.id} nodeId={nodes.id} sx={{ fontSize: 10 }} label={[nodes.name,
-    <IconButton size="small" color="secondary" onClick={(event) => handleNodeSelect(event, nodes)} >
+    <IconButton sx={{ marginLeft: 1 }} size="small" color="primary" onClick={(event) => handleNodeSelect(event, nodes)} >
       <ControlPointRoundedIcon sx={{ width: 15, height: 15 }} />
+
+    </IconButton>,
+    <IconButton sx={{ marginLeft: 1 }} size="small" color="primary" onClick={() => console.log("remove")} >
+      <InfoRoundedIcon sx={{ width: 15, height: 15 }} />
+
     </IconButton>]}>
       {Array.isArray(nodes.children)
         ? nodes.children.map((node) => renderTree(node))
@@ -181,7 +210,7 @@ function App() {
 
       </TreeView>
 
-      <Dialog open={open} onClose={() => setOpen(false)}>
+      <Dialog scroll='body' open={open} onClose={() => setOpen(false)}>
         <DialogTitle>Add Family Member</DialogTitle>
         <DialogContent>
           {/* <TextField
