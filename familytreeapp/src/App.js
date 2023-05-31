@@ -25,6 +25,13 @@ import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import HourglassBottomRoundedIcon from '@mui/icons-material/HourglassBottomRounded';
 //  for theme treeitem
 import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
+import Snackbar from '@mui/material/Snackbar';
+
+
+// alert 
+
+import Alert from '@mui/material/Alert';
+
 const StyledTreeItem = styled(TreeItem)(({ theme }) => ({
   fontSize: 11,
   // Add your custom styles here
@@ -60,7 +67,23 @@ function App() {
   const inputRef = useRef(null);
   const [expanded, setExpanded] = useState([])
 
+  //  for snackbar states
+  const [infoText, setInfoText] = useState({
+    isopen: false,
+    vertical: 'top',
+    horizontal: 'right',
+    infoMessage: "Testing"
+  });
 
+  const { isopen, vertical, horizontal, infoMessage } = infoText
+
+  const handleClick = () => {
+    setInfoText({ ...infoText, isopen: true, infoMessage: "New Member Added!" });
+  };
+
+  const handleClose = () => {
+    setInfoText({ ...infoText, isopen: false });
+  };
 
 
   const handleToggle = (event, nodeIds) => {
@@ -109,37 +132,41 @@ function App() {
     // setOpen(false);
 
     // Create a new member object with a unique ID and the entered name
-    const newMember = {
-      id: Date.now().toString(), // Generate a unique ID
-      name: memberName,
-      age: age,
-      gender: gender
-    };
 
-    console.log(newMember)
-    // Find the selected node in the data
-    const findNode = (nodes) => {
-      if (nodes.id === selectedNodeId) {
-        if (!Array.isArray(nodes.children)) {
-          nodes.children = [];
+    if (memberName) {
+
+      const newMember = {
+        id: Date.now().toString(), // Generate a unique ID
+        name: memberName,
+        age: age,
+        gender: gender
+      };
+
+      // Find the selected node in the data
+      const findNode = (nodes) => {
+        if (nodes.id === selectedNodeId) {
+          if (!Array.isArray(nodes.children)) {
+            nodes.children = [];
+          }
+          nodes.children.push(newMember);
+          return true;
         }
-        nodes.children.push(newMember);
-        return true;
-      }
-      if (Array.isArray(nodes.children)) {
-        return nodes.children.some(findNode);
-      }
-      return false;
-    };
+        if (Array.isArray(nodes.children)) {
+          return nodes.children.some(findNode);
+        }
+        return false;
+      };
 
-    // Find and update the selected node in the data
-    const selectedNodeId = selectedNodeRef.current.id;
-    findNode(sujaramdata);
+      // Find and update the selected node in the data
+      const selectedNodeId = selectedNodeRef.current.id;
+      findNode(sujaramdata);
 
-    // Reset the member name and close the dialog box
-    setMemberName('');
-    setOpen(false);
-    // updateData()
+      // Reset the member name and close the dialog box
+      setInfoText({ ...infoText, isopen: true, infoMessage: `${newMember.name} is added!` })
+      setMemberName('');
+      setOpen(false);
+      // updateData()
+    }
   };
 
   const removeMemberNode = () => {
@@ -189,6 +216,18 @@ function App() {
   );
   return (
     <div className="App">
+      <Snackbar
+        anchorOrigin={{ vertical, horizontal }}
+        open={isopen}
+        autoHideDuration={2000}
+        onClose={handleClose}
+        key={vertical + horizontal}
+      >
+        <Alert
+          onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+          {infoMessage}
+        </Alert>
+      </Snackbar>
 
       <Grid spacing={3} sx={{ marginBottom: 1 }}>
         <Grid lg>
@@ -209,6 +248,8 @@ function App() {
         {renderTree(tree)}
 
       </TreeView>
+
+      {/* <Alert severity="success">This is a success alert — check it out!</Alert> */}
 
       <Dialog scroll='body' open={open} onClose={() => setOpen(false)}>
         <DialogTitle>Add Family Member</DialogTitle>
