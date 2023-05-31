@@ -25,6 +25,14 @@ import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import HourglassBottomRoundedIcon from '@mui/icons-material/HourglassBottomRounded';
 //  for theme treeitem
 import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
+import Snackbar from '@mui/material/Snackbar';
+
+
+// alert 
+
+import Alert from '@mui/material/Alert';
+import ProfileBox from './components/ProfileBox';
+
 const StyledTreeItem = styled(TreeItem)(({ theme }) => ({
   fontSize: 11,
   // Add your custom styles here
@@ -59,8 +67,32 @@ function App() {
   const [tree, setTree] = useState(sujaramdata)
   const inputRef = useRef(null);
   const [expanded, setExpanded] = useState([])
+  const [profile, setProfile] = useState({
+    showProfile: false,
+    data: {
+      name: "mahendra Suthar",
+      age: 18,
+      gender: "Male"
+    }
+  })
 
+  //  for snackbar states
+  const [infoText, setInfoText] = useState({
+    isopen: false,
+    vertical: 'top',
+    horizontal: 'right',
+    infoMessage: "Testing"
+  });
 
+  const { isopen, vertical, horizontal, infoMessage } = infoText
+
+  const handleClick = () => {
+    setInfoText({ ...infoText, isopen: true, infoMessage: "New Member Added!" });
+  };
+
+  const handleClose = () => {
+    setInfoText({ ...infoText, isopen: false });
+  };
 
 
   const handleToggle = (event, nodeIds) => {
@@ -94,9 +126,7 @@ function App() {
 
 
 
-  useEffect(() => {
-    // syncData()
-  }, [])
+
   const handleAddMember = () => {
     // Perform any necessary actions with the entered member name, such as updating the data object or making an API call
     let newsMember = {
@@ -109,40 +139,44 @@ function App() {
     // setOpen(false);
 
     // Create a new member object with a unique ID and the entered name
-    const newMember = {
-      id: Date.now().toString(), // Generate a unique ID
-      name: memberName,
-      age: age,
-      gender: gender
-    };
 
-    console.log(newMember)
-    // Find the selected node in the data
-    const findNode = (nodes) => {
-      if (nodes.id === selectedNodeId) {
-        if (!Array.isArray(nodes.children)) {
-          nodes.children = [];
+    if (memberName) {
+
+      const newMember = {
+        id: Date.now().toString(), // Generate a unique ID
+        name: memberName,
+        age: age,
+        gender: gender
+      };
+
+      // Find the selected node in the data
+      const findNode = (nodes) => {
+        if (nodes.id === selectedNodeId) {
+          if (!Array.isArray(nodes.children)) {
+            nodes.children = [];
+          }
+          nodes.children.push(newMember);
+          return true;
         }
-        nodes.children.push(newMember);
-        return true;
-      }
-      if (Array.isArray(nodes.children)) {
-        return nodes.children.some(findNode);
-      }
-      return false;
-    };
+        if (Array.isArray(nodes.children)) {
+          return nodes.children.some(findNode);
+        }
+        return false;
+      };
 
-    // Find and update the selected node in the data
-    const selectedNodeId = selectedNodeRef.current.id;
-    findNode(sujaramdata);
+      // Find and update the selected node in the data
+      const selectedNodeId = selectedNodeRef.current.id;
+      findNode(sujaramdata);
 
-    // Reset the member name and close the dialog box
-    setMemberName('');
-    setOpen(false);
-    // updateData()
+      // Reset the member name and close the dialog box
+      setInfoText({ ...infoText, isopen: true, infoMessage: `${newMember.name} is added!` })
+      setMemberName('');
+      setOpen(false);
+      // updateData()
+    }
   };
 
-  const removeMemberNode = () => {
+  const removeMemberNode = (nodes) => {
     const findNode = (nodes) => {
       if (nodes.id === selectedNodeId) {
         if (!Array.isArray(nodes.children)) {
@@ -162,6 +196,48 @@ function App() {
     findNode(sujaramdata);
   }
 
+
+  // get profile data from nodes
+
+  const getProfileData = (event, node) => {
+    selectedNodeRef.current = node;
+
+    const findNode = (nodes) => {
+      if (nodes.id === selectedNodeId) {
+        if (!Array.isArray(nodes.children)) {
+          nodes.children = [];
+        }
+        console.log("profile", nodes)
+        setProfile({ ...profile, data: nodes, showProfile: true })
+        return true;
+      }
+      if (Array.isArray(nodes.children)) {
+        return nodes.children.some(findNode);
+      }
+      return false;
+    };
+
+    // Find and update the selected node in the data
+    const selectedNodeId = selectedNodeRef.current.id;
+    findNode(sujaramdata);
+
+
+    // setProfile({ ...profile, showProfile: true })
+  }
+
+
+
+  const handleInfoClick = () => {
+    // get user data and console log that data
+    getProfileData()
+  }
+
+
+
+
+
+
+
   const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
     ...theme.typography.body2,
@@ -178,7 +254,9 @@ function App() {
       <ControlPointRoundedIcon sx={{ width: 15, height: 15 }} />
 
     </IconButton>,
-    <IconButton sx={{ marginLeft: 1 }} size="small" color="primary" onClick={() => console.log("remove")} >
+    <IconButton sx={{ marginLeft: 1 }} size="small" color="primary" onClick={(event) => {
+      getProfileData(event, nodes)
+    }} >
       <InfoRoundedIcon sx={{ width: 15, height: 15 }} />
 
     </IconButton>]}>
@@ -189,6 +267,18 @@ function App() {
   );
   return (
     <div className="App">
+      <Snackbar
+        anchorOrigin={{ vertical, horizontal }}
+        open={isopen}
+        autoHideDuration={2000}
+        onClose={handleClose}
+        key={vertical + horizontal}
+      >
+        <Alert
+          onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+          {infoMessage}
+        </Alert>
+      </Snackbar>
 
       <Grid spacing={3} sx={{ marginBottom: 1 }}>
         <Grid lg>
@@ -209,6 +299,8 @@ function App() {
         {renderTree(tree)}
 
       </TreeView>
+
+      {/* <Alert severity="success">This is a success alert — check it out!</Alert> */}
 
       <Dialog scroll='body' open={open} onClose={() => setOpen(false)}>
         <DialogTitle>Add Family Member</DialogTitle>
@@ -257,6 +349,11 @@ function App() {
         </DialogActions>
       </Dialog>
 
+
+      {
+        profile.showProfile &&
+        <ProfileBox profile={profile} setProfile={setProfile} />
+      }
     </div>
   );
 }
