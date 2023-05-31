@@ -31,6 +31,7 @@ import Snackbar from '@mui/material/Snackbar';
 // alert 
 
 import Alert from '@mui/material/Alert';
+import ProfileBox from './components/ProfileBox';
 
 const StyledTreeItem = styled(TreeItem)(({ theme }) => ({
   fontSize: 11,
@@ -66,6 +67,14 @@ function App() {
   const [tree, setTree] = useState(sujaramdata)
   const inputRef = useRef(null);
   const [expanded, setExpanded] = useState([])
+  const [profile, setProfile] = useState({
+    showProfile: false,
+    data: {
+      name: "mahendra Suthar",
+      age: 18,
+      gender: "Male"
+    }
+  })
 
   //  for snackbar states
   const [infoText, setInfoText] = useState({
@@ -117,9 +126,7 @@ function App() {
 
 
 
-  useEffect(() => {
-    // syncData()
-  }, [])
+
   const handleAddMember = () => {
     // Perform any necessary actions with the entered member name, such as updating the data object or making an API call
     let newsMember = {
@@ -169,7 +176,7 @@ function App() {
     }
   };
 
-  const removeMemberNode = () => {
+  const removeMemberNode = (nodes) => {
     const findNode = (nodes) => {
       if (nodes.id === selectedNodeId) {
         if (!Array.isArray(nodes.children)) {
@@ -189,6 +196,48 @@ function App() {
     findNode(sujaramdata);
   }
 
+
+  // get profile data from nodes
+
+  const getProfileData = (event, node) => {
+    selectedNodeRef.current = node;
+
+    const findNode = (nodes) => {
+      if (nodes.id === selectedNodeId) {
+        if (!Array.isArray(nodes.children)) {
+          nodes.children = [];
+        }
+        console.log("profile", nodes)
+        setProfile({ ...profile, data: nodes, showProfile: true })
+        return true;
+      }
+      if (Array.isArray(nodes.children)) {
+        return nodes.children.some(findNode);
+      }
+      return false;
+    };
+
+    // Find and update the selected node in the data
+    const selectedNodeId = selectedNodeRef.current.id;
+    findNode(sujaramdata);
+
+
+    // setProfile({ ...profile, showProfile: true })
+  }
+
+
+
+  const handleInfoClick = () => {
+    // get user data and console log that data
+    getProfileData()
+  }
+
+
+
+
+
+
+
   const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
     ...theme.typography.body2,
@@ -205,7 +254,9 @@ function App() {
       <ControlPointRoundedIcon sx={{ width: 15, height: 15 }} />
 
     </IconButton>,
-    <IconButton sx={{ marginLeft: 1 }} size="small" color="primary" onClick={() => console.log("remove")} >
+    <IconButton sx={{ marginLeft: 1 }} size="small" color="primary" onClick={(event) => {
+      getProfileData(event, nodes)
+    }} >
       <InfoRoundedIcon sx={{ width: 15, height: 15 }} />
 
     </IconButton>]}>
@@ -298,6 +349,11 @@ function App() {
         </DialogActions>
       </Dialog>
 
+
+      {
+        profile.showProfile &&
+        <ProfileBox profile={profile} setProfile={setProfile} />
+      }
     </div>
   );
 }
